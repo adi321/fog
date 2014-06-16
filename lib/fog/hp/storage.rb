@@ -347,6 +347,7 @@ module Fog
         end
 
         def request(params, parse_json = true, &block)
+          first_attempt = true
           begin
             response = @connection.request(params.merge({
               :headers  => {
@@ -357,12 +358,10 @@ module Fog
               :path     => "#{@path}/#{params[:path]}",
             }), &block)
           rescue Excon::Errors::Unauthorized => error
-            if error.response.body =~ /This server could not verify that you are authorized to access the document you requested/
-              authenticate
-              retry
-            else # bad credentials
-              raise error
-            end
+            raise error unless first_attempt
+            first_attempt = false
+            authenticate
+            retry
           rescue Excon::Errors::HTTPStatusError => error
             raise case error
             when Excon::Errors::NotFound
@@ -379,6 +378,7 @@ module Fog
 
         # this request is used only for get_shared_container and get_shared_object calls
         def shared_request(params, parse_json = true, &block)
+          first_attempt = true
           begin
             response = @connection.request(params.merge({
               :headers  => {
@@ -389,12 +389,10 @@ module Fog
               :path     => "#{params[:path]}",
             }), &block)
           rescue Excon::Errors::Unauthorized => error
-            if error.response.body =~ /This server could not verify that you are authorized to access the document you requested/
-              authenticate
-              retry
-            else # bad credentials
-              raise error
-            end
+            raise error unless first_attempt
+            first_attempt = false
+            authenticate
+            retry
           rescue Excon::Errors::HTTPStatusError => error
             raise case error
             when Excon::Errors::NotFound
