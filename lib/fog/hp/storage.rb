@@ -330,7 +330,7 @@ module Fog
           @hp_avl_zone  = @options[:hp_avl_zone]
           @os_account_meta_temp_url_key = options[:os_account_meta_temp_url_key]
 
-          authenticate
+          authenticate(@options)
 
           uri = URI.parse(@hp_storage_uri)
           @host   = uri.host
@@ -360,7 +360,7 @@ module Fog
           rescue Excon::Errors::Unauthorized => error
             raise error unless first_attempt
             first_attempt = false
-            authenticate
+            authenticate(@options)
             retry
           rescue Excon::Errors::HTTPStatusError => error
             raise case error
@@ -391,7 +391,7 @@ module Fog
           rescue Excon::Errors::Unauthorized => error
             raise error unless first_attempt
             first_attempt = false
-            authenticate
+            authenticate(@options)
             retry
           rescue Excon::Errors::HTTPStatusError => error
             raise case error
@@ -411,25 +411,25 @@ module Fog
 
         private
 
-        def authenticate
+        def authenticate(options)
           ### Set an option to use the style of authentication desired; :v1 or :v2 (default)
           ### A symbol is required, we should ensure that the value is loaded as a symbol
-          auth_version = @options[:hp_auth_version] || :v2
+          auth_version = options[:hp_auth_version] || :v2
           auth_version = auth_version.to_s.downcase.to_sym
 
           if (auth_version == :v2)
             # Call the control services authentication
-            credentials = Fog::HP.authenticate_v2(@options, @connection_options)
+            credentials = Fog::HP.authenticate_v2(options, @connection_options)
             # the CS service catalog returns the cdn endpoint
             @hp_storage_uri = credentials[:endpoint_url]
             @hp_cdn_uri  = credentials[:cdn_endpoint_url]
             @credentials = credentials
           else
             # Call the legacy v1.0/v1.1 authentication
-            credentials = Fog::HP.authenticate_v1(@options, @connection_options)
+            credentials = Fog::HP.authenticate_v1(options, @connection_options)
             # the user sends in the cdn endpoint
-            @hp_storage_uri = @options[:hp_auth_uri]
-            @hp_cdn_uri  = @options[:hp_cdn_uri]
+            @hp_storage_uri = options[:hp_auth_uri]
+            @hp_cdn_uri  = options[:hp_cdn_uri]
           end
 
           @auth_token = credentials[:auth_token]
