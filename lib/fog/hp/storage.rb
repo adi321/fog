@@ -328,7 +328,6 @@ module Fog
           @options[:hp_service_type] ||= "Object Storage"
           @hp_tenant_id = @options[:hp_tenant_id]
           @hp_avl_zone  = @options[:hp_avl_zone]
-          @os_account_meta_temp_url_key = options[:os_account_meta_temp_url_key]
 
           authenticate(@options)
 
